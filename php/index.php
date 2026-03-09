@@ -21,5 +21,11 @@ $app->get('/hello/{name}', function (Request $request, Response $response, array
 });
 
 $app->get('/alunni', "AlunniController:index");
+$app->get("/alunni/{id}", "AlunniController:show");
+$app->post("/alunni", "AlunniController:create");
+$app->put("/alunni/{id}", "AlunniController:update");
+$app->delete("/alunni/{id}", "AlunniController:destroy");
+
+
 
 $app->run();
