@@ -2,13 +2,8 @@
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
-// GET            /alunni           AlunniController:index
-// GET            /alunni/{id}    AlunniController:show
-// POST         /alunni           AlunniController:create
-// PUT            /alunni/{id}    AlunniController:update
-// DELETE     /alunni/{id}    AlunniController:destroy
-
-require __DIR__ . '/../singleton/DbSingleton.php';
+require_once __DIR__ . '/../singleton/DbSingleton.php';
+require_once __DIR__ . '/../utils/ResponseUtils.php';
 
 class AlunniController
 {
@@ -17,8 +12,7 @@ class AlunniController
     $result = $mysqli_connection->query("SELECT * FROM alunni");
     $results = $result->fetch_all(MYSQLI_ASSOC);
 
-    $response->getBody()->write(json_encode($results));
-    return $response->withHeader("Content-type", "application/json")->withStatus(200);
+    return ResponseUtils::json($response, $results, 200);
   }
   
   public function show(Request $request, Response $response, array $args){
@@ -30,66 +24,53 @@ class AlunniController
     $query_result = $result->get_result();
     $data = $query_result->fetch_all(MYSQLI_ASSOC);
 
-    $response->getBody()->write(json_encode($data));
-    return $response->withHeader("Content-Type", "application/json")->withStatus(200);
+    return ResponseUtils::json($response, $data, 200);
   }
 
   public function create(Request $request, Response $response, array $args){
     $data = json_decode($request->getBody(), true);
 
     if (!isset($data['nome']) || !isset($data['cognome'])) {
-        // If data is missing, return an error response
-        $response->getBody()->write(json_encode([
+        return ResponseUtils::json($response, [
             'error' => 'Missing required fields: nome and/or cognome'
-        ]));
-        return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+        ], 400);
     }
 
     $mysqli_connection = DbSingleton::getInstance();
-
     $result = $mysqli_connection->prepare("INSERT INTO alunni (nome, cognome) VALUES (?, ?)");
-
     $result->bind_param("ss", $data['nome'], $data['cognome']);
-
     $execute_result = $result->execute();
 
     if (!$execute_result) {
-      $response->getBody()->write(json_encode([
+      return ResponseUtils::json($response, [
           'error' => 'Failed to insert record into database'
-      ]));
-      return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
+      ], 500);
     }
     
-    $response->getBody()->write("CREATED");
-    return $response->withStatus(201);
+    return ResponseUtils::json($response, ['message' => 'CREATED'], 201);
   }
 
   public function update(Request $request, Response $response, array $args){
     $data = json_decode($request->getBody(), true);
 
     if (!isset($data['nome']) || !isset($data['cognome'])) {
-        $response->getBody()->write(json_encode([
+        return ResponseUtils::json($response, [
             'error' => 'Missing required fields: nome and/or cognome'
-        ]));
-        return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+        ], 400);
     }
 
     $mysqli_connection = DbSingleton::getInstance();
-
     $result = $mysqli_connection->prepare("UPDATE alunni SET nome = ?, cognome = ? WHERE id = ?");
     $result->bind_param("ssi", $data['nome'], $data['cognome'], $args['id']);
-
     $execute_result = $result->execute();
 
     if (!$execute_result) {
-      $response->getBody()->write(json_encode([
+      return ResponseUtils::json($response, [
           'error' => 'Failed to update record in the database'
-      ]));
-      return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
+      ], 500);
     }
 
-    $response->getBody()->write("UPDATED");
-    return $response->withStatus(200);
+    return ResponseUtils::json($response, ['message' => 'UPDATED'], 200);
   }
 
   public function destroy(Request $request, Response $response, array $args){
@@ -100,14 +81,12 @@ class AlunniController
     $execute_result = $result->execute();
 
     if (!$execute_result) {
-        $response->getBody()->write(json_encode([
+        return ResponseUtils::json($response, [
             'error' => 'Failed to delete record from database'
-        ]));
-        return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
+        ], 500);
     }
 
-    $response->getBody()->write("DELETED");
-    return $response->withStatus(200);
+    return ResponseUtils::json($response, ['message' => 'DELETED'], 200);
   }
 }
 
