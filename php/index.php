@@ -26,6 +26,12 @@ $app->post("/alunni", "AlunniController:create");
 $app->put("/alunni/{id}", "AlunniController:update");
 $app->delete("/alunni/{id}", "AlunniController:destroy");
 
+$notFoundHandler = function (Request $request, Response $response, array $args) {
+    $response->getBody()->write('404 - Not Found');
+    return $response->withStatus(404);
+};
 
+$app->any('/', $notFoundHandler);
+$app->any('/{routes:.+}', $notFoundHandler);
 
 $app->run();
