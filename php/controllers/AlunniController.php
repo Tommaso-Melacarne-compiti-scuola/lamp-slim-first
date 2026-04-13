@@ -24,7 +24,7 @@ class AlunniController
   public function show(Request $request, Response $response, array $args){
     $mysqli_connection = DbSingleton::getInstance();
     $result = $mysqli_connection->prepare("SELECT * FROM alunni WHERE id = ?");
-    $result->bind_param("s", $args["id"]);
+    $result->bind_param("i", $args["id"]);
     $result->execute();
 
     $query_result = $result->get_result();
@@ -96,7 +96,7 @@ class AlunniController
     $mysqli_connection = DbSingleton::getInstance();
 
     $result = $mysqli_connection->prepare("DELETE FROM alunni WHERE id = ?");
-    $result->bind_param("s", $args['id']);
+    $result->bind_param("i", $args['id']);
     $execute_result = $result->execute();
 
     if (!$execute_result) {
